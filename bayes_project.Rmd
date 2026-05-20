@@ -1,0 +1,138 @@
+---
+title: "Enzyme kinetics"
+author: "Eucharia Okolie, Jeffrey Nunoo, Muthoni Wachira, Viktor Szabó"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rjags)
+library(coda)
+my.data <- datasets::Puromycin
+```
+
+# 1
+
+```{r}
+cat("model {
+  # LIKELIHOOD
+  
+  for (i in 1:N) {
+      Y[i] ~ dnorm(mu[i], tau)
+      mu[i] <- (Vmax[state[i]] * x[i]) / (K[state[i]] + x[i])
+  }
+  
+  # PRIORS
+  
+  for (j in 1:2) {
+    Vmax[j] ~ dunif(0, 1000)
+  }
+  
+  for (j in 1:2) {
+    K[j] ~ dunif(0, 10)
+  }
+  
+  tau ~ dgamma(0.001, 0.001)
+  sigma2 <- 1 / tau
+  sigma <- sqrt(tau)
+}",file="enzyme_model.txt")
+
+N <- length(my.data$rate)
+my.data <- list(state=my.data$state,Y=my.data$rate,x=my.data$conc,N=N)
+
+my.inits <- function()list(
+  Vmax = c(200, 100),
+  K = c(0.1, 0.1),
+  tau = 1
+)
+
+params <- c("Vmax", "K", "sigma")
+
+jags <- jags.model(file="enzyme_model.txt",
+                   data=my.data,
+                   inits=my.inits,
+                   n.chains=3)
+
+update(jags,5000)
+
+enzyme.sim <- coda.samples(model = jags,variable.names = params,n.iter = 10000,thin=1)
+```
+
+```{r}
+summary(enzyme.sim)
+par(mar = c(3,3,2,1))
+plot(enzyme.sim)
+```
+
+```{r}
+# check trace plots
+traceplot(enzyme.sim)
+
+# convergence test
+gelman.diag(enzyme.sim)
+
+# all ratios < 1.1 so we have converged
+```
+
+# 7
+
+```{r}
+all_chains <- as.matrix(enzyme.sim)
+prob_Vmax <- mean(all_chains[,"Vmax[1]"] > all_chains[,"Vmax[2]"])
+prob_K <- mean(all_chains[,"K[1]"] < all_chains[,"K[2]"])
+
+cat("P(Vmax_treated>Vmax_untreated | data) =",prob_Vmax,"\n")
+cat("P(K_treated<K_untreated | data) =",prob_K)
+```
+
+The treated enzyme almost certainly has a higher maximum rate
+
+No strong evidence that treated has a smaller K
+
+# 8
+
+$$\frac{V_{max}\cdot x}{K+x} = 0.8 V_{max}$$
+
+$$\frac{x}{K+x} = 0.8$$
+
+$$x = 0.8K + 0.8x$$
+
+$$0.2x = 0.8K$$ $$x = 4K$$
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+k_1 <- all_chains[,"K[1]"]
+treated_x <- k_1 * 4
+
+k_2 <- all_chains[,"K[2]"]
+untreated_x <- k_2 * 4
+
+df <- data.frame(
+  value = c(treated_x, untreated_x),
+  group = c(
+    rep("treated", length(treated_x)),
+    rep("untreated", length(untreated_x))
+  )
+)
+
+df_summary <- df %>% group_by(group) %>% summarise(
+    mean = mean(value),
+    sd = sd(value),
+  )
+
+df_summary
+
+ggplot(data = df) + geom_density(aes(x = value, fill = group),alpha = 0.7) + labs(
+    title = "Posterior density: Concetration for 80% of Vmax",
+    x = "Concentration",
+    y = "Density"
+  )
+```

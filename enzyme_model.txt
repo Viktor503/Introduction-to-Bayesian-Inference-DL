@@ -1,0 +1,22 @@
+model {
+  # LIKELIHOOD
+  
+  for (i in 1:N) {
+      Y[i] ~ dnorm(mu[i], tau)
+      mu[i] <- (Vmax[state[i]] * x[i]) / (K[state[i]] + x[i])
+  }
+  
+  # PRIORS
+  
+  for (j in 1:2) {
+    Vmax[j] ~ dunif(0, 1000)
+  }
+  
+  for (j in 1:2) {
+    K[j] ~ dunif(0, 10)
+  }
+  
+  tau ~ dgamma(0.001, 0.001)
+  sigma2 <- 1 / tau
+  sigma <- sqrt(tau)
+}
