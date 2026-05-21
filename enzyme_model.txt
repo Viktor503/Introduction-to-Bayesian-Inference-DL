@@ -2,21 +2,28 @@ model {
   # LIKELIHOOD
   
   for (i in 1:N) {
-      Y[i] ~ dnorm(mu[i], tau)
-      mu[i] <- (Vmax[state[i]] * x[i]) / (K[state[i]] + x[i])
+  # Normal Likelihood with precision tau
+  Y[i] ~ dnorm(mu[i], tau)
+  
+  # Michaelis-Menten nonlinear mean
+  mu[i] <- (Vmax[state[i]] * x[i]) / (K[state[i]] + x[i])
   }
   
   # PRIORS
   
   for (j in 1:2) {
-    Vmax[j] ~ dunif(0, 1000)
+  # Uninformative uniform prior on Vmax
+  Vmax[j] ~ dunif(0, 1000)
   }
   
   for (j in 1:2) {
+  # Uninformative uniform prior on K
     K[j] ~ dunif(0, 10)
   }
   
+  # Prior precision
   tau ~ dgamma(0.001, 0.001)
   sigma2 <- 1 / tau
-  sigma <- sqrt(tau)
+  sigma <- 1 / sqrt(tau)
+  
 }
