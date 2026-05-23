@@ -85,24 +85,13 @@ gelman.diag(enzyme.sim)
 
 # all ratios < 1.1 so we have converged
 ```
-**Trace plots.** The trace plots show all three chains overlapping 
-completely throughout the sampling period, with no visible trends, 
-drifts, or periods where a chain becomes stuck. This stable, well-mixed 
-behaviour confirms the chains are sampling from the same stationary 
-distribution.
+**Trace plots.** The trace plots show all three chains overlapping completely throughout the sampling period, with no visible trends, drifts, or periods where a chain becomes stuck. This stable, well-mixed behaviour confirms the chains are sampling from the same stationary distribution.
 
-**Gelman-Rubin statistic ($\hat{R}$).** The $\hat{R}$ statistic compares 
-within-chain variance to between-chain variance. A value of 1 indicates 
-perfect convergence; values below 1.1 are considered acceptable. All 
-parameters returned $\hat{R}$ well below this threshold, confirming the 
-chains have converged to the same target distribution.
+**Gelman-Rubin statistic ($\hat{R}$).** The $\hat{R}$ statistic compares within-chain variance to between-chain variance. A value of 1 indicates perfect convergence; values below 1.1 are considered acceptable. All parameters returned $\hat{R}$ well below this threshold, confirming the chains have converged to the same target distribution.
 
 ## Conclusion on Convergence
 
-Both diagnostics agree: the chains have converged. The $\hat{R}$ values 
-are all below 1.1 and the trace plots show stable, well-mixed chains 
-throughout. The 30,000 posterior samples retained after burn-in provide 
-a reliable basis for posterior inference on $V_{max}$, $K$, and $\sigma$.
+Both diagnostics agree: the chains have converged. The $\hat{R}$ values are all below 1.1 and the trace plots show stable, well-mixed chains throughout. The 30,000 posterior samples retained after burn-in provide a reliable basis for posterior inference on $V_{max}$, $K$, and $\sigma$.
 
 
 ## QUESTION 3
