@@ -268,23 +268,31 @@ legend("topleft",
        lwd= 2, bty = "n")
 ```
 
-
 ## QUESTION 7
+
 ```{r}
-all_chains <- as.matrix(enzyme.sim)
-prob_Vmax <- mean(all_chains[,"Vmax[1]"] > all_chains[,"Vmax[2]"])
-prob_K <- mean(all_chains[,"K[1]"] < all_chains[,"K[2]"])
+# Take the mean of the simulation matrix 
+prob_Vmax <- mean(sim.matrix[,"Vmax[1]"] > sim.matrix[,"Vmax[2]"])
+prob_K <- mean(sim.matrix[,"K[1]"] < sim.matrix[,"K[2]"])
 
 cat("P(Vmax_treated>Vmax_untreated | data) =",prob_Vmax,"\n")
 cat("P(K_treated<K_untreated | data) =",prob_K)
 ```
 
-The treated enzyme almost certainly has a higher maximum rate
+The estimates were obtained by using Monte Carlo proportions over the posterior distribution.
 
-No strong evidence that treated has a smaller K
+**Interpretation:**
 
+Since $P(Vmax\_treated>Vmax\_untreated \mid data)$ is 1 or very close to it, we have strong evidence, that treatment with Puromycin increases the maximum reaction rate of the enzyme.
+
+$P(K\_treated<K\_untreated \mid data) \approx 0.11$ can be reversed so that $P(K\_treated>K\_untreated \mid data) \approx 0.89$, which means that there is strong evidence, that the treated enzyme requires higher substrate concentration to reach half its maximum rate.
+
+These results imply that Puromycin increases maximum rate, however it also increases the concentration needed in order to reach that rate.
 
 ## QUESTION 8
+
+To get the x (concentration) where our expected reaction reaches 80% of the maximum, we worked out x analytically.
+
 $$\frac{V_{max}\cdot x}{K+x} = 0.8 V_{max}$$
 
 $$\frac{x}{K+x} = 0.8$$
@@ -293,16 +301,22 @@ $$x = 0.8K + 0.8x$$
 
 $$0.2x = 0.8K$$ $$x = 4K$$
 
+This means that we need 4 times the half-saturation concentration to reach 80% of the maximum rate.
+
+Since we have a posterior distribution of K, we can transform it using the previously derived formula $x = 4K$ to get the posteriors for the concentrations at 80% V_max
+
 ```{r}
 library(ggplot2)
 library(dplyr)
 
-k_1 <- all_chains[,"K[1]"]
+# Calculate posteriors
+k_1 <- sim.matrix[,"K[1]"]
 treated_x <- k_1 * 4
 
-k_2 <- all_chains[,"K[2]"]
+k_2 <- sim.matrix[,"K[2]"]
 untreated_x <- k_2 * 4
 
+# Create result table and plots
 df <- data.frame(
   value = c(treated_x, untreated_x),
   group = c(
@@ -324,3 +338,6 @@ ggplot(data = df) + geom_density(aes(x = value, fill = group),alpha = 0.7) + lab
     y = "Density"
   )
 ```
+**Interpretation:** The posterior distributions are well separated, only partially overlapping. We can see from the table that treated group need 0.264 while the untreated group 200 ppm of concentration on average.
+
+This means that the untreated group reaches 80% of its maximum rate with lower concentration than the treated enzyme.
