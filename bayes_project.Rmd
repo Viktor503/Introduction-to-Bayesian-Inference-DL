@@ -18,6 +18,13 @@ The data set contains 23 observations of enzyme reaction rates measured at varyi
 
 ```{r}
 my.data <- datasets::Puromycin
+N <- nrow(my.data)
+my.data.jags <- list(
+  Y = my.data$rate,
+  x = my.data$conc,
+  state = as.integer(my.data$state),
+  N = N
+)
 ```
 
 ## QUESTION 1
@@ -43,8 +50,10 @@ cat("model {
   }
   
   tau ~ dgamma(0.001, 0.001)
-  sigma2 <- 1 / tau # variance
-  sigma <- 1 / sqrt(tau) # standard deviation
+  # variance
+  sigma2 <- 1 / tau
+  # standard deviation
+  sigma <- 1 / sqrt(tau) 
 }",file="enzyme_model.txt")
 
 ```
@@ -54,7 +63,7 @@ Normal distribution:
 
 $$Y_i \sim \text{Normal}(\mu_i, \tau)$$
 
-It is centred on the true mean rate $\mu_i$ with precision $\tau$ that controls how much the observed rates scatter around the Michaelis-Menten curve.
+It is centered on the true mean rate $\mu_i$ with precision $\tau$ that controls how much the observed rates scatter around the Michaelis-Menten curve.
 
 **Nonlinear mean structure.** The mean $\mu_i$ follows the Michaelis-Menten
 equation:
@@ -96,6 +105,7 @@ enzyme saturates quickly and is efficient. One value per group.
 deviation of the observations around the curve. Shared across both groups,
 assuming equal variability in the measurements regardless of treatment.
 
+
 ## QUESTION 2
 ```{r}
 my.inits <- function()list(
@@ -107,7 +117,7 @@ my.inits <- function()list(
 params <- c("Vmax", "K", "sigma")
 
 jags <- jags.model(file="enzyme_model.txt",
-                   data=my.data,
+                   data=my.data.jags,
                    inits=my.inits,
                    n.chains=3)
 
