@@ -33,14 +33,12 @@ The BUGS model was specified as follows:
 ```{r}
 cat("model {
   # LIKELIHOOD
-  
   for (i in 1:N) {
       Y[i] ~ dnorm(mu[i], tau)
       mu[i] <- (Vmax[state[i]] * x[i]) / (K[state[i]] + x[i])
   }
   
   # PRIORS
-  
   for (j in 1:2) {
     Vmax[j] ~ dunif(0, 1000)
   }
@@ -70,7 +68,7 @@ equation:
 
 $$\mu_i = \frac{V_{max,j} \cdot x_i}{K_j + x_i}$$
 
-Rather than a straight line, this is a saturating curve — reaction rate
+Rather than a straight line, this is a saturating curve - reaction rate
 rises steeply at low concentrations then levels off as the enzyme approaches
 its capacity. The index $j = \texttt{state[i]}$ ensures each observation
 uses the parameters of its own group, so the curve is fitted separately for
@@ -123,7 +121,11 @@ jags <- jags.model(file="enzyme_model.txt",
 
 update(jags,5000)
 
-enzyme.sim <- coda.samples(model = jags,variable.names = params,n.iter = 10000,thin=1)
+enzyme.sim <- coda.samples(
+  model = jags,
+  variable.names = params,
+  n.iter = 10000,
+  thin=1)
 ```
 
 **Number of chains.** Three parallel chains were run, each starting from different initial values. Running multiple chains allows us to assess whether they converge to the same posterior distribution regardless of starting point.
@@ -141,8 +143,6 @@ traceplot(enzyme.sim)
 
 # convergence test
 gelman.diag(enzyme.sim)
-
-# all ratios < 1.1 so we have converged
 ```
 **Trace plots.** The trace plots show all three chains overlapping completely throughout the sampling period, with no visible trends, drifts, or periods where a chain becomes stuck. This stable, well-mixed behaviour confirms the chains are sampling from the same stationary distribution.
 
@@ -216,6 +216,22 @@ hist(K.ratio, breaks=50, probability=TRUE,
 abline(v=1, col="red",   lwd=2, lty=2)
 abline(v=quantile(K.ratio, c(0.025,0.975)), col="black", lwd=1.5, lty=3)
 ```
+
+The ratios are computed directly from the 30,000 posterior samples — for
+each draw, the treated parameter is divided by the untreated parameter.
+The red dashed line at 1 marks the reference point of no difference. If
+the 95% credible interval excludes 1, the ratio is credibly different
+from 1.
+
+**$V_{max}$ Ratio.** The posterior mean is approximately 1.32 (95% CI:
+1.19, 1.47). The entire credible interval lies above 1, confirming the
+treated enzyme's maximum reaction rate is credibly higher by approximately
+32%.
+
+**$K$ Ratio.** The posterior mean is approximately 1.33 (95% CI: 0.86,
+1.92). The credible interval straddles 1 — we cannot rule out that the
+ratio is exactly 1. No credible difference in substrate affinity.
+
 ## QUESTION 5
 ```{r}
 # Concentration grid
@@ -279,6 +295,29 @@ legend("bottomright",
        lwd=2, pch=16, bty="n")
 ```
 
+The fitted curves are obtained by plugging every posterior sample of
+$V_{max}$ and $K$ into the Michaelis-Menten equation across a fine
+concentration grid from 0.1 to 1, yielding 30,000 plausible curves per
+group. Parameter uncertainty is therefore fully propagated into the
+uncertainty bands.
+
+**Shape.** Both groups follow the expected saturating curve. Observed
+data points fall comfortably within the credible bands, confirming a
+good model fit.
+
+**Separation.** The treated curve sits clearly and consistently above
+the untreated curve across the entire concentration range with no
+crossing, reflecting the higher $V_{max}$ in the treated group.
+
+**Uncertainty bands.** The bands are narrow for both groups and widen
+slightly at higher concentrations where uncertainty in $V_{max}$ has
+the greatest influence.
+
+**Similar shape, different ceiling.** Because $K$ does not credibly
+differ between groups, the curves share the same general curvature.
+The treatment shifts the curve upward rather than changing its shape.
+
+
 ## QUESTION 6
 ```{r}
 x.star <- 0.5
@@ -327,8 +366,18 @@ legend("topleft",
        lwd= 2, bty = "n")
 ```
 
-## QUESTION 7
+At $x = 0.5$, the posterior mean reaction rate for the treated group is
+approximately 199 (95% CI: 187, 211) and for the untreated group
+approximately 155 (95% CI: 141, 169). The two posterior distributions
+are clearly separated with non-overlapping credible intervals, confirming
+the treatment effect is real and meaningful at this concentration. Both
+distributions are smooth and unimodal, reflecting well-identified
+parameters and good chain mixing. The relatively narrow distributions
+reflect the fact that $x = 0.5$ lies well within the observed
+concentration range, where the curve is well-constrained.
 
+
+## QUESTION 7
 ```{r}
 # Take the mean of the simulation matrix 
 prob_Vmax <- mean(sim.matrix[,"Vmax[1]"] > sim.matrix[,"Vmax[2]"])
