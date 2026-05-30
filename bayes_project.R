@@ -146,13 +146,17 @@ param.names <- c("K (treated)", "K (untreated)",
                  "Vmax (treated)", "Vmax (untreated)", 
                  "Sigma")
 
+param.units <- c("Concentration", "Concentration",
+                 "Reaction rate", "Reaction rate",
+                 "Reaction rate")
+
 par(mfrow = c(2, 3))
 
 for (i in 1:5) {
   densplot(enzyme.sim[, i],
            main = paste("Posterior density:", param.names[i]),
-           xlab = "Parameter value",
-           ylab = "Density")
+           xlab = param.units[i],
+           ylab = "Posterior density")
 }
 
 # QUESTION 4
@@ -208,17 +212,17 @@ for (j in seq_along(x.seq)) {
 # Summarise: mean and 95% credible band at each concentration
 summarise.curve <- function(mat) {
   data.frame(
-    x      = x.seq,
-    mean   = apply(mat, 2, mean),
-    lower  = apply(mat, 2, quantile, 0.025),
-    upper  = apply(mat, 2, quantile, 0.975)
+    x = x.seq,
+    mean = apply(mat, 2, mean),
+    lower = apply(mat, 2, quantile, 0.025),
+    upper = apply(mat, 2, quantile, 0.975)
   )
 }
 
-df.treated   <- summarise.curve(curve.treated)
+df.treated <- summarise.curve(curve.treated)
 df.untreated <- summarise.curve(curve.untreated)
 
-df.treated$Group   <- "Treated"
+df.treated$Group <- "Treated"
 df.untreated$Group <- "Untreated"
 
 df.all <- rbind(df.treated, df.untreated)
@@ -279,7 +283,6 @@ rate.df <- data.frame(
 )
 
 # Density plot
-library(ggplot2)
 ggplot(rate.df, aes(x = Rate, fill = Group, colour = Group)) +
   geom_density(alpha = 0.7) +
   labs(title = "Posterior reaction rate at x = 0.5",
@@ -316,8 +319,8 @@ df <- data.frame(
 )
 
 df_summary <- df %>% group_by(group) %>% summarise(
-  Mean   = mean(value),
-  SD     = sd(value),
+  Mean = mean(value),
+  SD = sd(value),
   `2.5%` = quantile(value, 0.025),
   Median = quantile(value, 0.50),
   `97.5%`= quantile(value, 0.975)

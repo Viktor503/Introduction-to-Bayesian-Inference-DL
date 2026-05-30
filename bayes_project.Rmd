@@ -346,7 +346,7 @@ summarise.curve <- function(mat) {
 df.treated <- summarise.curve(curve.treated)
 df.untreated <- summarise.curve(curve.untreated)
 
-df.treated$Group   <- "Treated"
+df.treated$Group <- "Treated"
 df.untreated$Group <- "Untreated"
 
 df.all <- rbind(df.treated, df.untreated)
@@ -432,7 +432,6 @@ rate.df <- data.frame(
 )
 
 # Density plot
-library(ggplot2)
 ggplot(rate.df, aes(x = Rate, fill = Group, colour = Group)) +
   geom_density(alpha = 0.7) +
   labs(title = "Posterior reaction rate at x = 0.5",
@@ -509,8 +508,8 @@ df <- data.frame(
 )
 
 df_summary <- df %>% group_by(group) %>% summarise(
-    Mean   = mean(value),
-    SD     = sd(value),
+    Mean = mean(value),
+    SD = sd(value),
     `2.5%` = quantile(value, 0.025),
     Median = quantile(value, 0.50),
     `97.5%`= quantile(value, 0.975)
