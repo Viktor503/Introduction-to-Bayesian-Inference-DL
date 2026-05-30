@@ -41,6 +41,7 @@ cat("model {
   sigma <- 1 / sqrt(tau)
 }",file="enzyme_model.txt")
 
+cat(readLines("enzyme_model.txt"), sep="\n")
 
 # QUESTION 2
 my.inits <- list(
@@ -77,9 +78,18 @@ jags <- jags.model(
 )
 
 # check trace plots
-op <- par(mfrow = c(2, 3))
-traceplot(enzyme.sim)
-par(op)
+param.names <- c("K (treated)", "K (untreated)", 
+                 "Vmax (treated)", "Vmax (untreated)", 
+                 "Sigma")
+
+par(mfrow = c(2, 3))
+
+for (i in 1:5) {
+  traceplot(enzyme.sim[, i],
+            main = paste("Trace plot:", param.names[i]),
+            xlab = "Iteration",
+            ylab = "Parameter value")
+}
 
 # convergence test
 # Gelman-Rubin convergence diagnostics
@@ -132,9 +142,18 @@ kable(posterior.table,
                      "95% Credible interval" = 3))
 
 
-par(mfrow = c(2, 3))
-densplot(enzyme.sim, main = "Posterior densities")
+param.names <- c("K (treated)", "K (untreated)", 
+                 "Vmax (treated)", "Vmax (untreated)", 
+                 "Sigma")
 
+par(mfrow = c(2, 3))
+
+for (i in 1:5) {
+  densplot(enzyme.sim[, i],
+           main = paste("Posterior density:", param.names[i]),
+           xlab = "Parameter value",
+           ylab = "Density")
+}
 
 # QUESTION 4
 # Extract posterior samples as a matrix

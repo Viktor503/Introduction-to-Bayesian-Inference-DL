@@ -61,6 +61,10 @@ cat("model {
 
 ```
 
+```{r, comment=""}
+cat(readLines("enzyme_model.txt"), sep="\n")
+```
+
 **Likelihood.** Each observed reaction rate $Y_i$ is assumed to follow a
 Normal distribution:
 
@@ -165,9 +169,19 @@ mixing well.
 
 **Convergence Diagnostics**
 ```{r, fig.width=7, fig.height=4, out.width="100%"}
-op <- par(mfrow = c(2, 3))
-traceplot(enzyme.sim)
-par(op)
+param.names <- c("K (treated)", "K (untreated)", 
+                 "Vmax (treated)", "Vmax (untreated)", 
+                 "Sigma")
+
+par(mfrow = c(2, 3))
+
+for (i in 1:5) {
+  traceplot(enzyme.sim[, i],
+            main = paste("Trace plot:", param.names[i]),
+            xlab = "Iteration",
+            ylab = "Parameter value")
+}
+
 ```
 
 
@@ -229,10 +243,24 @@ kable(posterior.table,
                      "Point estimates" = 2, 
                      "95% Credible interval" = 3))
 ```
+
 ```{r, fig.width=7, fig.height=4}
+param.names <- c("K (treated)", "K (untreated)", 
+                 "Vmax (treated)", "Vmax (untreated)", 
+                 "Sigma")
+
+param.units <- c("Concentration", "Concentration",
+                 "Reaction rate", "Reaction rate",
+                 "Reaction rate")
 
 par(mfrow = c(2, 3))
-densplot(enzyme.sim, main = "Posterior densities")
+
+for (i in 1:5) {
+  densplot(enzyme.sim[, i],
+           main = paste("Posterior density:", param.names[i]),
+           xlab = param.units[i],
+           ylab = "Posterior density")
+}
 ```
 
 **$V_{max}$ - Maximum Reaction Rate.**
