@@ -253,7 +253,8 @@ param.units <- c("Concentration", "Concentration",
                  "Reaction rate", "Reaction rate",
                  "Reaction rate")
 
-par(mfrow = c(2, 3))
+par(mfrow = c(2, 3),
+    cex.main = 1)
 
 for (i in 1:5) {
   densplot(enzyme.sim[, i],
